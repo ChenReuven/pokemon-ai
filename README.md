@@ -11,6 +11,9 @@ I want to show how work with your Generative AI Buddy (in this example Chat GPT)
 ### Here is the PPT With All prompts and results
 TBD
 
+### Tech Stack
+React, Node JS, Typescript, React Router, Poke API, Axios
+
 ### The process
 
 ![The Process Diagram](assets/images/image-3.png)
