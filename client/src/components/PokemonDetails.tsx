@@ -1,32 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import {useHistory} from "react-router-dom";
-import './PokemonDetails.css';  // Import the CSS file
+import { useNavigate, useParams } from "react-router-dom";
+import './PokemonDetails.css';
 
-function PokemonDetails({ match }: any) {
-    const [pokemonDetail, setPokemonDetail]: any = useState<any>(null);
+interface Pokemon {
+    name: string;
+    sprites: {
+        front_default: string;
+    };
+    abilities: Array<{
+        ability: {
+            name: string;
+        };
+    }>;
+}
 
-    // Use the useHistory hook here
-    const history = useHistory();
+function PokemonDetails() {
+    const [pokemonDetail, setPokemonDetail] = useState<Pokemon | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const navigate = useNavigate();
+    const { name } = useParams<{ name: string }>();
 
     useEffect(() => {
-        fetch(`http://localhost:5000/api/pokemon/${match.params.name}`)
-            .then(response => response.json())
-            .then(data => setPokemonDetail(data))
-            .catch(error => console.error(error));
-    }, [match.params.name]);
+        if (!name) return;
+        
+        setLoading(true);
+        setError(null);
+        
+        fetch(`http://localhost:5000/api/pokemon/${name}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                setPokemonDetail(data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching pokemon details:', error);
+                setError('Failed to load pokemon details. Please try again.');
+                setLoading(false);
+            });
+    }, [name]);
 
-    if (!pokemonDetail) return <div>Loading...</div>;
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+    if (!pokemonDetail) return <div>Pokemon not found</div>;
 
     return (
         <div>
-            {/* Add the Back button here */}
-            <button onClick={() => history.goBack()}>Back</button>
+            <button onClick={() => navigate(-1)}>Back</button>
 
             <h2 className="header-pokemon-detail-name">{pokemonDetail.name}</h2>
             <img src={pokemonDetail.sprites.front_default} alt={pokemonDetail.name} width={250}/>
             <h3>Abilities</h3>
             <ul>
-                {pokemonDetail.abilities.map((ability: any) => (
+                {pokemonDetail.abilities.map((ability) => (
                     <li key={ability.ability.name}>{ability.ability.name}</li>
                 ))}
             </ul>
